@@ -1,5 +1,6 @@
 using System;
 using Mirror;
+using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -7,7 +8,10 @@ public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance;
 
+    private int score;
+
     [SerializeField] private Transform coin;
+    [SerializeField] private TextMeshProUGUI scoreUI;
 
     // Syncvar : 대상이 변경될 때 알려주는 기능
     [SyncVar(hook = nameof(OncoinPositionChanged))] // hook : 값이 변경될 때 이벤트 실행
@@ -16,6 +20,7 @@ public class GameManager : NetworkBehaviour
     private void Awake()
     {
         Instance = this;
+        SetScoreUI(score);
     }
     
     public override void OnStartServer()
@@ -23,6 +28,18 @@ public class GameManager : NetworkBehaviour
         base.OnStartServer();
         MoveCoin();
     }
+
+    public void AddScore(int score)
+    {
+        this.score += score;
+        SetScoreUI(this.score);
+    }
+    
+    private void SetScoreUI(int score)
+    {
+        scoreUI.text = $"Score : {score}";
+    }    
+    
     [Server]
     public void MoveCoin()
     {

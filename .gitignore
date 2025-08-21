@@ -79,3 +79,11 @@ crashlytics-build.properties
 
 # idea
 *.idea
+
+# Items Asset
+/[Aa]ssets/Items.meta
+/[Aa]ssets/Items/*
+
+# TextMesh Pro
+/[Aa]ssets/[Tt]extMesh\ Pro.meta
+/[Aa]ssets/[Tt]extMesh\ Pro/*

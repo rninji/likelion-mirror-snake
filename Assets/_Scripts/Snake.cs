@@ -17,6 +17,8 @@ public class Snake : NetworkBehaviour
     [SyncVar(hook = nameof(OnDeathStateChanged))]
     private bool isDead = false;
 
+    private int coinScore = 1;
+
     // public override void OnStartClient()
     // {
     //     base.OnStartClient();
@@ -47,6 +49,7 @@ public class Snake : NetworkBehaviour
         if (other.CompareTag("Coin"))
         {
             GetCoin();
+            GameManager.Instance.AddScore(coinScore);
         }
 
         if (other.CompareTag("Tail"))
