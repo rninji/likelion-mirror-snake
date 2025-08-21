@@ -51,6 +51,16 @@ public class Snake : NetworkBehaviour
             GetCoin();
             GameManager.Instance.AddScore(coinScore);
         }
+        
+        if (other.CompareTag("Short"))
+        {
+            GetItem(other.gameObject, Item.Short);
+        }
+        
+        if (other.CompareTag("Shield"))
+        {
+            GetItem(other.gameObject, Item.Shield);
+        }
 
         if (other.CompareTag("Tail"))
         {
@@ -58,6 +68,19 @@ public class Snake : NetworkBehaviour
             if (tail.ownerIdentity != netIdentity) // 내 꼬리가 아니라면
                 Died();
         }
+    }
+
+    [Command]
+    void GetItem(GameObject item, Item itemType)
+    {
+        DestroyItem(item);
+        GameManager.Instance.SpawnItem(itemType);
+    }
+    
+    [Server]
+    void DestroyItem(GameObject item)
+    {
+        NetworkServer.Destroy(item);
     }
 
     void MoveHead()
