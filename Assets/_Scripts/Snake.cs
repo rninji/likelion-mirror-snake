@@ -1,3 +1,4 @@
+using System.Collections;
 using Mirror;
 using UnityEngine;
 
@@ -19,11 +20,8 @@ public class Snake : NetworkBehaviour
 
     private int coinScore = 1;
 
-    // public override void OnStartClient()
-    // {
-    //     base.OnStartClient();
-    //     // tails.Callback += OnTailUpdated;
-    // }
+    [SyncVar(hook = nameof(OnShieldStateChanged))]
+    private bool isShield;
 
     public override void OnStartLocalPlayer()
     {
@@ -55,21 +53,68 @@ public class Snake : NetworkBehaviour
         if (other.CompareTag("Short"))
         {
             GetItem(other.gameObject, Item.Short);
+            UseShort();
         }
         
         if (other.CompareTag("Shield"))
         {
             GetItem(other.gameObject, Item.Shield);
+            UseSheild();
         }
 
         if (other.CompareTag("Tail"))
         {
+            if (isShield) // 무적
+                return;
+            
             Tail tail = other.GetComponent<Tail>();
             if (tail.ownerIdentity != netIdentity) // 내 꼬리가 아니라면
                 Died();
         }
     }
 
+    [Command]
+    void UseShort()
+    {
+        for (int i=0; i < 2; i++)
+        {
+            RemoveLastTail();
+        }
+    }
+    
+    [Server]
+    void RemoveLastTail()
+    {
+        if (tails.Count <= 0)
+            return;
+            
+        GameObject lastTail = tails[tails.Count - 1];
+        tails.RemoveAt(tails.Count - 1);
+        NetworkServer.Destroy(lastTail);
+    }
+    
+    [Command]
+    void UseSheild()
+    {
+        isShield = true;
+    }
+    
+    void OnShieldStateChanged(bool oldState, bool newState)
+    {
+        if (newState == true)
+            StartCoroutine(ShieldRoutine());
+    }
+    
+    IEnumerator ShieldRoutine()
+    {
+        Color c = headRenderer.material.color;
+        headRenderer.material.color = Color.blue;
+        isShield = true;
+        yield return new WaitForSeconds(15f);
+        isShield = false;
+        headRenderer.material.color = c;
+    }
+    
     [Command]
     void GetItem(GameObject item, Item itemType)
     {
@@ -131,23 +176,6 @@ public class Snake : NetworkBehaviour
         NetworkServer.Spawn(newTail, connectionToClient); 
         tails.Add(newTail);
     }
-    
-    // void OnTailUpdated(SyncList<GameObject>.Operation op, int index, GameObject oldTail, GameObject newTail)
-    // {
-    //     // 꼬리가 추가(ADD) 되었고, 로컬 플레이어인 경우
-    //     if (op == SyncList<GameObject>.Operation.OP_ADD && isLocalPlayer)
-    //     {
-    //         Transform target = transform;
-    //
-    //         if (index > 0)
-    //         {
-    //             target = tails[index - 1].transform;
-    //         }
-    //
-    //         newTail.transform.position = target.position;
-    //         newTail.transform.rotation = target.rotation;
-    //     }
-    // }
     
     [Command]
     void Died()
